@@ -1,3 +1,6 @@
+import type MarkdownIt from "npm:markdown-it@^14.1.0";
+import type { Options as MarkdownItOptions } from "npm:markdown-it@^14.1.0";
+
 /**
  * Plugin for markdown-it to expand image syntax to support
  * audio, videos, and loop videos
@@ -115,3 +118,15 @@ const defaultMessages: MessageMap = {
     'You can <a href="%s" download>download the file</a> instead.',
   "html5 media description": "Here is a description of the content: %s",
 };
+
+export function markdownItSmartMedia(
+  md: MarkdownIt,
+  options: MarkdownItSmartMediaOptions = {},
+): MarkdownIt {
+  const audioAttrs = options.audioAttrs ?? defaultAudioAttrs;
+  const videoAttrs = options.videoAttrs ?? defaultVideoAttrs;
+  const loopVideoAttrs = options.loopVideoAttrs ?? defaultLoopVideoAttrs;
+  const messages = options.messages ?? defaultMessages;
+
+  return md;
+}
