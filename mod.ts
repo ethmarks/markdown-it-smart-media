@@ -73,6 +73,19 @@ const defaultVideoAttrs = "controls";
 /** The loop video attributes to default to if no override is specified. */
 const defaultLoopVideoAttrs = "autoplay loop muted playsinline";
 
+/**
+ * Guess the media type based on the file extension of the URI.
+ *
+ * Defaults to "image" if URI isn't _clearly_ an audio or video file.
+ *
+ * Examples:
+ *
+ * - "waterfall.png" -> "image"
+ * - "birdsong.mp3" -> "audio"
+ * - "timelapse.mp4" -> "video"
+ * - "code.py" -> "image"
+ * - "The HORSE is a noble animal." -> "image"
+ */
 function guessMediaType(uri: string): "image" | "audio" | "video" {
   // Use a regex to isolate the file extension following a dot at
   // the end of the string.
