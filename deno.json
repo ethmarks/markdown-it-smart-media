@@ -4,6 +4,7 @@
   "exports": "./mod.ts",
   "license": "CC0-1.0",
   "imports": {
+    "@std/assert": "jsr:@std/assert@^1.0.19",
     "markdown-it": "npm:markdown-it@^14.1.0"
   },
   "lint": {
