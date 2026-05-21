@@ -129,5 +129,75 @@ export function markdownItSmartMedia(
   const videoAttrs = options.videoAttrs ?? defaultVideoAttrs;
   const loopVideoAttrs = options.loopVideoAttrs ?? defaultLoopVideoAttrs;
 
+  // Store the original image renderer to fall back on for standard images
+  const defaultRender: RenderRule = md.renderer.rules.image ||
+    function (
+      tokens: Token[],
+      idx: number,
+      options: MarkdownItOptions,
+      _env: any,
+      self: Renderer,
+    ) {
+      return self.renderToken(tokens, idx, options);
+    };
+
+  // Override the image rule
+  md.renderer.rules.image = (
+    tokens: Token[],
+    idx: number,
+    renderOptions: MarkdownItOptions,
+    env: any,
+    self: Renderer,
+  ) => {
+    const token = tokens[idx];
+
+    // Extract src
+    const srcIndex = token.attrIndex("src");
+    const src = srcIndex >= 0 ? token.attrs![srcIndex][1] : "";
+
+    // Extract title (e.g., ![alt](url "title"))
+    const titleIndex = token.attrIndex("title");
+    const title = titleIndex >= 0 ? token.attrs![titleIndex][1] : "";
+
+    // The alt text is stored in token.content
+    let alt = token.content || "";
+
+    const mediaType = guessMediaType(src);
+
+    // If it's just an image, bail out and use the default markdown-it renderer
+    if (mediaType === "image") {
+      return defaultRender(tokens, idx, renderOptions, env, self);
+    }
+
+    // Escape HTML to prevent XSS
+    const escapedSrc = md.utils.escapeHtml(src);
+    const titleAttr = title ? ` title="${md.utils.escapeHtml(title)}"` : "";
+
+    // Render Audio
+    if (mediaType === "audio") {
+      const ariaLabel = alt ? ` aria-label="${md.utils.escapeHtml(alt)}"` : "";
+      return `<audio src="${escapedSrc}"${titleAttr} ${audioAttrs}${ariaLabel}></audio>`;
+    }
+
+    // Render Video
+    if (mediaType === "video") {
+      let isLoop = false;
+
+      // Check for the loop keyword and strip it from the alt text
+      if (alt.startsWith("LOOP ")) {
+        isLoop = true;
+        alt = alt.substring(5); // Remove "LOOP "
+      }
+
+      const ariaLabel = alt ? ` aria-label="${md.utils.escapeHtml(alt)}"` : "";
+      const attrs = isLoop ? loopVideoAttrs : videoAttrs;
+
+      return `<video src="${escapedSrc}"${titleAttr} ${attrs}${ariaLabel}></video>`;
+    }
+
+    // Fallback to using default markdown-it renderer
+    return defaultRender(tokens, idx, renderOptions, env, self);
+  };
+
   return md;
 }

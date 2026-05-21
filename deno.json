@@ -5,5 +5,10 @@
   "license": "CC0-1.0",
   "imports": {
     "markdown-it": "npm:markdown-it@^14.1.0"
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["no-explicit-any"]
+    }
   }
 }
