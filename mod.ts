@@ -6,7 +6,7 @@
 // We can only detect video/audio files from the extension in the URL.
 // We default to video for ambiguous extensions (MPG, MP4, WebM)
 
-/** Common browser-compatible audio extentions */
+/** Common browser-compatible audio extensions */
 const validAudioExtensions = [
   "aac", // Advanced Audio Coding
   "flac", // Free Lossless Audio Codec
@@ -33,11 +33,80 @@ const validVideoExtensions = [
 ];
 
 /**
- * A mapping of messageKeys to actual message texts
- *
- * TODO: implement multilingual support
+ * The mapping of messageKeys to actual message texts
  */
-const messages = {
+interface MessageMap {
+  /**
+   * The message to display if the HTML5 <video> tag is not supported.
+   *
+   * Default is "Your browser does not support playing HTML5 video."
+   */
+  "html5 video not supported": string;
+
+  /**
+   * The message to display if the HTML5 <audio> tag is not supported.
+   *
+   * Default is "Your browser does not support playing HTML5 audio."
+   */
+  "html5 audio not supported": string;
+
+  /**
+   * The message that provides a fallback link to the media.
+   * Use "%s" as the placeholder for the link.
+   *
+   * Default is "You can <a href="%s" download>download the file</a> instead."
+   */
+  "html5 media fallback link": string;
+
+  /**
+   * The message that provides a fallback description of the media.
+   * Use "%s" as the placeholder for the description
+   *
+   * Default is "Here is a description of the content: %s"
+   */
+  "html5 media description": string;
+}
+
+/**
+ * The options and configuration for markdown-it-smart-media.
+ */
+interface MarkdownItSmartMediaOptions {
+  /**
+   * The HTML attributes to apply to audio tags.
+   *
+   * Default is "controls"
+   */
+  audioAttrs?: string;
+
+  /**
+   * The HTML attributes to apply to video tags.
+   *
+   * Default is "controls"
+   */
+  videoAttrs?: string;
+
+  /**
+   * The HTML attributes to apply to loop video tags.
+   *
+   * Default is "autoplay loop muted playsinline"
+   */
+  loopVideoAttrs?: string;
+
+  /** The text of fallback messages  */
+  messages?: MessageMap;
+}
+
+/** The audio attributes to default to if no override is specified. */
+const defaultAudioAttrs = "controls";
+
+/** The video attributes to default to if no override is specified. */
+const defaultVideoAttrs = "controls";
+
+/** The loop video attributes to default to if no override is specified. */
+const defaultLoopVideoAttrs = "autoplay loop muted playsinline";
+
+/** The messages to default to if no override is specified. */
+const defaultMessages: MessageMap = {
   "html5 video not supported":
     "Your browser does not support playing HTML5 video.",
   "html5 audio not supported":
