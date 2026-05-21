@@ -41,7 +41,7 @@ const validVideoExtensions = [
 /**
  * The options and configuration for markdown-it-smart-media.
  */
-interface MarkdownItSmartMediaOptions {
+export interface MarkdownItSmartMediaOptions {
   /**
    * The HTML attributes to apply to audio tags.
    *
@@ -121,7 +121,7 @@ function guessMediaType(uri: string): "image" | "audio" | "video" {
   return "image";
 }
 
-export function markdownItSmartMedia(
+export function smartMedia(
   md: MarkdownIt,
   options: MarkdownItSmartMediaOptions = {},
 ): MarkdownIt {
