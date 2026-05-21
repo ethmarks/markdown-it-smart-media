@@ -1,5 +1,8 @@
-import type MarkdownIt from "npm:markdown-it@^14.1.0";
-import type { Options as MarkdownItOptions } from "npm:markdown-it@^14.1.0";
+import type MarkdownIt from "markdown-it";
+import type { Options as MarkdownItOptions } from "markdown-it";
+import type Renderer from "markdown-it/lib/renderer.mjs";
+import type { RenderRule } from "markdown-it/lib/renderer.mjs";
+import type Token from "markdown-it/lib/token.mjs";
 
 /**
  * Plugin for markdown-it to expand image syntax to support
