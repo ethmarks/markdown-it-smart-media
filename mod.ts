@@ -39,41 +39,6 @@ const validVideoExtensions = [
 ];
 
 /**
- * The mapping of messageKeys to actual message texts
- */
-interface MessageMap {
-  /**
-   * The message to display if the HTML5 <video> tag is not supported.
-   *
-   * Default is "Your browser does not support playing HTML5 video."
-   */
-  "html5 video not supported": string;
-
-  /**
-   * The message to display if the HTML5 <audio> tag is not supported.
-   *
-   * Default is "Your browser does not support playing HTML5 audio."
-   */
-  "html5 audio not supported": string;
-
-  /**
-   * The message that provides a fallback link to the media.
-   * Use "%s" as the placeholder for the link.
-   *
-   * Default is "You can <a href="%s" download>download the file</a> instead."
-   */
-  "html5 media fallback link": string;
-
-  /**
-   * The message that provides a fallback description of the media.
-   * Use "%s" as the placeholder for the description
-   *
-   * Default is "Here is a description of the content: %s"
-   */
-  "html5 media description": string;
-}
-
-/**
  * The options and configuration for markdown-it-smart-media.
  */
 interface MarkdownItSmartMediaOptions {
@@ -97,9 +62,6 @@ interface MarkdownItSmartMediaOptions {
    * Default is "autoplay loop muted playsinline"
    */
   loopVideoAttrs?: string;
-
-  /** The text of fallback messages  */
-  messages?: MessageMap;
 }
 
 /** The audio attributes to default to if no override is specified. */
@@ -110,17 +72,6 @@ const defaultVideoAttrs = "controls";
 
 /** The loop video attributes to default to if no override is specified. */
 const defaultLoopVideoAttrs = "autoplay loop muted playsinline";
-
-/** The messages to default to if no override is specified. */
-const defaultMessages: MessageMap = {
-  "html5 video not supported":
-    "Your browser does not support playing HTML5 video.",
-  "html5 audio not supported":
-    "Your browser does not support playing HTML5 audio.",
-  "html5 media fallback link":
-    'You can <a href="%s" download>download the file</a> instead.',
-  "html5 media description": "Here is a description of the content: %s",
-};
 
 function guessMediaType(uri: string): "image" | "audio" | "video" {
   // Use a regex to isolate the file extension following a dot at
@@ -164,7 +115,6 @@ export function markdownItSmartMedia(
   const audioAttrs = options.audioAttrs ?? defaultAudioAttrs;
   const videoAttrs = options.videoAttrs ?? defaultVideoAttrs;
   const loopVideoAttrs = options.loopVideoAttrs ?? defaultLoopVideoAttrs;
-  const messages = options.messages ?? defaultMessages;
 
   return md;
 }
