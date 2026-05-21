@@ -1,2 +1,3 @@
-# markdown-it-media
-A markdown-it plugin to expand the Markdown image syntax to support HTML5 audio, video, and loop video
+# markdown-it-smart-media
+
+Plugin for markdown-it to expand image syntax to support audio, videos, and loop videos 
