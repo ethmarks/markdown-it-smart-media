@@ -122,6 +122,41 @@ const defaultMessages: MessageMap = {
   "html5 media description": "Here is a description of the content: %s",
 };
 
+function guessMediaType(uri: string): "image" | "audio" | "video" {
+  // Use a regex to isolate the file extension following a dot at
+  // the end of the string.
+  const extensionMatch = uri.match(/\.([^/.]+)$/);
+
+  // If the match is null, the regex couldn't find any matches.
+  // This indicates that the string didn't end in a file extension. We just fall
+  // back to default behaviour in this case.
+  if (extensionMatch === null) {
+    return "image";
+  }
+
+  // We select the match index 1 to isolate the capture group.
+  // This results in the bare extension, without a prefixed dot.
+  // For example, "mp4" instead of ".mp4".
+  const extension = extensionMatch[1].toLowerCase();
+
+  // We check for video extensions first so that they take priority over audio
+  // extensions.
+  if (validVideoExtensions.includes(extension)) {
+    return "video";
+  }
+
+  if (validAudioExtensions.includes(extension)) {
+    return "audio";
+  }
+
+  // If the URI has a trailing file extension that wasn't in
+  // validAudioExtensions or validVideoExtensions, it's probably an image
+  // extension like "png" or "webp".
+  // It could also be an extension like "txt" that isn't an image, video, or
+  // audio file, but that's none of our business.
+  return "image";
+}
+
 export function markdownItSmartMedia(
   md: MarkdownIt,
   options: MarkdownItSmartMediaOptions = {},
