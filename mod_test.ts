@@ -105,7 +105,7 @@ Deno.test(
   () => {
     const md = new MarkdownIt().use(smartMediaPlugin);
     const result = md.render(
-      "![LOOP Alt text](test.webm)",
+      "![:LOOP Alt text](test.webm)",
     );
 
     assertStringIncludes(result, "<video");
@@ -162,13 +162,13 @@ Deno.test(
     assertStringIncludes(result6, "Title");
 
     const result7 = md.render(
-      "![LOOP Alt text](test.mp4)",
+      "![:LOOP Alt text](test.mp4)",
     );
     assertStringIncludes(result7, "<figure>");
     assertNotMatch(result7, /<figcaption>/);
 
     const result8 = md.render(
-      '![LOOP Alt text](test.mp4 "Title")',
+      '![:LOOP Alt text](test.mp4 "Title")',
     );
     assertStringIncludes(result8, "<figure>");
     assertStringIncludes(result8, "<figcaption>");
@@ -221,13 +221,13 @@ Deno.test(
     assertNotMatch(result6, /<figcaption>/);
 
     const result7 = md.render(
-      "![LOOP Alt text](test.mp4)",
+      "![:LOOP Alt text](test.mp4)",
     );
     assertNotMatch(result7, /<figure>/);
     assertNotMatch(result7, /<figcaption>/);
 
     const result8 = md.render(
-      '![LOOP Alt text](test.mp4 "Title")',
+      '![:LOOP Alt text](test.mp4 "Title")',
     );
     assertNotMatch(result8, /<figure>/);
     assertNotMatch(result8, /<figcaption>/);

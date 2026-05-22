@@ -183,9 +183,9 @@ export function smartMediaPlugin(
         let isLoop = false;
 
         // Check for the loop keyword and strip it from the alt text
-        if (alt.startsWith("LOOP ")) {
+        if (alt.startsWith(":LOOP ")) {
           isLoop = true;
-          alt = alt.substring(5); // Remove "LOOP "
+          alt = alt.substring(6); // Remove ":LOOP "
         }
 
         const ariaLabel = alt
