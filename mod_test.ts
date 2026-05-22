@@ -1,6 +1,10 @@
 import MarkdownIt from "markdown-it";
 import { guessMediaType, smartMedia } from "./mod.ts";
-import { assertEquals, assertStringIncludes } from "@std/assert";
+import {
+  assertEquals,
+  assertNotMatch,
+  assertStringIncludes,
+} from "@std/assert";
 
 Deno.test(
   "guessMediaType identifies example cases from documentation",
@@ -59,54 +63,169 @@ Deno.test(
 );
 
 Deno.test(
-  "smartMedia renders basic image syntax",
+  "markdown-it-smart-media renders basic image syntax",
   () => {
     const md = new MarkdownIt().use(smartMedia);
-    const result = md.render("![Description of the image](image.png)");
+    const result = md.render("![Alt text](test.png)");
 
     assertStringIncludes(result, "<img");
-    assertStringIncludes(result, 'src="image.png"');
-    assertStringIncludes(result, 'alt="Description of the image"');
+    assertStringIncludes(result, 'src="test.png"');
+    assertStringIncludes(result, 'alt="Alt text"');
   },
 );
 
 Deno.test(
-  "smartMedia renders basic audio syntax",
+  "markdown-it-smart-media renders basic audio syntax",
   () => {
     const md = new MarkdownIt().use(smartMedia);
-    const result = md.render("![Description of the audio](audio.mp3)");
+    const result = md.render("![Alt text](test.mp3)");
 
     assertStringIncludes(result, "<audio");
-    assertStringIncludes(result, 'src="audio.mp3"');
+    assertStringIncludes(result, 'src="test.mp3"');
     assertStringIncludes(result, "controls");
-    assertStringIncludes(result, 'aria-label="Description of the audio"');
+    assertStringIncludes(result, 'aria-label="Alt text"');
   },
 );
 
 Deno.test(
-  "smartMedia renders basic video syntax",
+  "markdown-it-smart-media renders basic video syntax",
   () => {
     const md = new MarkdownIt().use(smartMedia);
-    const result = md.render("![Description of the video](video.mp4)");
+    const result = md.render("![Alt text](test.mp4)");
 
     assertStringIncludes(result, "<video");
-    assertStringIncludes(result, 'src="video.mp4"');
+    assertStringIncludes(result, 'src="test.mp4"');
     assertStringIncludes(result, "controls");
-    assertStringIncludes(result, 'aria-label="Description of the video"');
+    assertStringIncludes(result, 'aria-label="Alt text"');
   },
 );
 
 Deno.test(
-  "smartMedia renders loop video syntax",
+  "markdown-it-smart-media renders loop video syntax",
   () => {
     const md = new MarkdownIt().use(smartMedia);
     const result = md.render(
-      "![LOOP Description of the loop video](loop.webm)",
+      "![LOOP Alt text](test.webm)",
     );
 
     assertStringIncludes(result, "<video");
-    assertStringIncludes(result, 'src="loop.webm"');
+    assertStringIncludes(result, 'src="test.webm"');
     assertStringIncludes(result, "autoplay loop muted playsinline");
-    assertStringIncludes(result, 'aria-label="Description of the loop video"');
+    assertStringIncludes(result, 'aria-label="Alt text"');
+  },
+);
+
+Deno.test(
+  "markdown-it-smart-media handles wrapInFigureTags enabled",
+  () => {
+    const md = new MarkdownIt().use(smartMedia, { wrapInFigureTags: true });
+
+    const result1 = md.render(
+      "![Alt text](test.png)",
+    );
+    assertStringIncludes(result1, "<figure>");
+    assertNotMatch(result1, /<figcaption>/);
+
+    const result2 = md.render(
+      '![Alt text](test.png "Title")',
+    );
+    assertStringIncludes(result2, "<figure>");
+    assertStringIncludes(result2, "<figcaption>");
+    assertStringIncludes(result2, "Title");
+
+    const result3 = md.render(
+      "![Alt text](test.mp3)",
+    );
+    assertStringIncludes(result3, "<figure>");
+    assertNotMatch(result3, /<figcaption>/);
+
+    const result4 = md.render(
+      '![Alt text](test.mp3 "Title")',
+    );
+    assertStringIncludes(result4, "<figure>");
+    assertStringIncludes(result4, "<figcaption>");
+    assertStringIncludes(result4, "Title");
+
+    const result5 = md.render(
+      "![Alt text](test.mp4)",
+    );
+    assertStringIncludes(result5, "<figure>");
+    assertNotMatch(result5, /<figcaption>/);
+
+    const result6 = md.render(
+      '![Alt text](test.mp4 "Title")',
+    );
+    assertStringIncludes(result6, "<figure>");
+    assertStringIncludes(result6, "<figcaption>");
+    assertStringIncludes(result6, "Title");
+
+    const result7 = md.render(
+      "![LOOP Alt text](test.mp4)",
+    );
+    assertStringIncludes(result7, "<figure>");
+    assertNotMatch(result7, /<figcaption>/);
+
+    const result8 = md.render(
+      '![LOOP Alt text](test.mp4 "Title")',
+    );
+    assertStringIncludes(result8, "<figure>");
+    assertStringIncludes(result8, "<figcaption>");
+    assertStringIncludes(result8, "Title");
+  },
+);
+
+Deno.test(
+  "markdown-it-smart-media handles wrapInFigureTags disabled",
+  () => {
+    const md = new MarkdownIt().use(smartMedia, { wrapInFigureTags: false });
+
+    const result1 = md.render(
+      "![Alt text](test.png)",
+    );
+    assertNotMatch(result1, /<figure>/);
+    assertNotMatch(result1, /<figcaption>/);
+
+    const result2 = md.render(
+      '![Alt text](test.png "Title")',
+    );
+    assertNotMatch(result2, /<figure>/);
+    assertNotMatch(result2, /<figcaption>/);
+    assertNotMatch(result2, /Title/);
+
+    const result3 = md.render(
+      "![Alt text](test.mp3)",
+    );
+    assertNotMatch(result3, /<figure>/);
+    assertNotMatch(result3, /<figcaption>/);
+
+    const result4 = md.render(
+      '![Alt text](test.mp3 "Title")',
+    );
+    assertNotMatch(result4, /<figure>/);
+    assertNotMatch(result4, /<figcaption>/);
+
+    const result5 = md.render(
+      "![Alt text](test.mp4)",
+    );
+    assertNotMatch(result5, /<figure>/);
+    assertNotMatch(result5, /<figcaption>/);
+
+    const result6 = md.render(
+      '![Alt text](test.mp4 "Title")',
+    );
+    assertNotMatch(result6, /<figure>/);
+    assertNotMatch(result6, /<figcaption>/);
+
+    const result7 = md.render(
+      "![LOOP Alt text](test.mp4)",
+    );
+    assertNotMatch(result7, /<figure>/);
+    assertNotMatch(result7, /<figcaption>/);
+
+    const result8 = md.render(
+      '![LOOP Alt text](test.mp4 "Title")',
+    );
+    assertNotMatch(result8, /<figure>/);
+    assertNotMatch(result8, /<figcaption>/);
   },
 );
