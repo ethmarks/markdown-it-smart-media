@@ -155,8 +155,32 @@ const loopVideoRule: MarkdownItSmartMediaRule = {
   value: "autoplay loop muted playsinline",
 };
 
+const youtubeEmbedRule: MarkdownItSmartMediaRule = {
+  // YouTube URLs don't have file extensions, so they are inferred as images.
+  mediaTypes: ["image"],
+
+  // Captures the video ID from the URL.
+  regex:
+    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/,
+
+  // Uses the source as input.
+  inputType: "source",
+
+  // Isolates the video ID from the full URL.
+  inputCapture: "isolate",
+
+  // Overrides the HTML template.
+  effectType: "template",
+
+  // Renders a youtube-nocookie iframe.
+  // We use title="{{alt}}" because iframes don't support alt text, and the title attribute is the next best place.
+  value:
+    '<iframe src="https://www.youtube-nocookie.com/embed/{{src}}" title="{{alt}}" class="youtube-embed" style="aspect-ratio: 16/9; width: 100%; border: 0;" allow="autoplay; encrypted-media;" allowfullscreen></iframe>',
+};
+
 export const defaultRules: MarkdownItSmartMediaRule[] = [
   loopVideoRule,
+  youtubeEmbedRule,
 ];
 
 /**
