@@ -135,27 +135,28 @@ const defaultVideoAttrs = "controls";
 /** The default value of wrapInFigureTags if no override is specified. */
 const defaultwrapInFigureTags = true;
 
-const defaultRules: MarkdownItSmartMediaRule[] = [
-  // Loop video rule
-  {
-    // Only applies to videos
-    mediaTypes: ["video"],
+const loopVideoRule: MarkdownItSmartMediaRule = {
+  // Only applies to videos
+  mediaTypes: ["video"],
 
-    // Searches for the text ":LOOP " and captures it
-    regex: /(:LOOP )/,
+  // Searches for the text ":LOOP " and captures it
+  regex: /(:LOOP )/,
 
-    // Uses alt text as input
-    inputType: "alt",
+  // Uses alt text as input
+  inputType: "alt",
 
-    // Strip the ":LOOP " from the final alt text
-    inputCapture: "strip",
+  // Strip the ":LOOP " from the final alt text
+  inputCapture: "strip",
 
-    // Overrides the attributes
-    effectType: "attr",
+  // Overrides the attributes
+  effectType: "attr",
 
-    // Uses GIF-like video attributes
-    value: "autoplay loop muted playsinline",
-  },
+  // Uses GIF-like video attributes
+  value: "autoplay loop muted playsinline",
+};
+
+export const defaultRules: MarkdownItSmartMediaRule[] = [
+  loopVideoRule,
 ];
 
 /**
