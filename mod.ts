@@ -40,6 +40,12 @@ const validVideoExtensions = [
 export type MediaType = "image" | "audio" | "video";
 
 export interface MarkdownItSmartMediaRule {
+  /** The media types that the rule applies to. */
+  mediaTypes: MediaType[];
+
+  /** The regex to match against the input. */
+  regex: RegExp;
+
   /**
    * The property of the media token to match against the regex to determine
    * whether or not the rule applies.
@@ -49,11 +55,16 @@ export interface MarkdownItSmartMediaRule {
    */
   inputType: "alt" | "source";
 
-  /** The regex to match against the input. */
-  regex: RegExp;
-
-  /** The media types that the rule applies to. */
-  mediaTypes: MediaType[];
+  /**
+   * How to process the part of the input matched by the capture group of the
+   * regex.
+   *
+   * - strip: Remove the capture group. Example: "apple banana cherry" + `/apple (banana)/` = "apple cherry".
+   * - isolate: Remove everything except for the capture group. Example: "apple banana cherry" + `/apple (banana)/` = "banana".
+   *
+   * To preserve the input without stripping or isolating, use a regex without a capture group.
+   */
+  inputCapture: "strip" | "isolate";
 
   /**
    * The property that the rule affects.
@@ -130,11 +141,14 @@ const defaultRules: MarkdownItSmartMediaRule[] = [
     // Only applies to videos
     mediaTypes: ["video"],
 
+    // Searches for the text ":LOOP " and captures it
+    regex: /(:LOOP )/,
+
     // Uses alt text as input
     inputType: "alt",
 
-    // Searches for the text ":LOOP " and captures it
-    regex: /(:LOOP )/,
+    // Strip the ":LOOP " from the final alt text
+    inputCapture: "strip",
 
     // Overrides the attributes
     effectType: "attr",
@@ -287,8 +301,20 @@ export function smartMediaPlugin(
           // return early.
           if (match === null) return;
 
-          // Remove the regex's capture group from the alt text.
-          alt = alt.replaceAll(match[1], "");
+          // We select the match index 1 to isolate the capture group.
+          const capture = match[1];
+
+          // If the regex captured something, process it according to the
+          // inputCapture type.
+          if (capture !== undefined) {
+            if (rule.inputCapture === "strip") {
+              // remove the capture from the alt text
+              alt = alt.replaceAll(capture, "");
+            } else {
+              // set the alt text to the capture
+              alt = capture;
+            }
+          }
 
           // Call the effect function to override either the attribute string
           // or the template.
@@ -303,8 +329,20 @@ export function smartMediaPlugin(
           // return early.
           if (match === null) return;
 
-          // Remove the regex's capture group from the URI.
-          src = src.replaceAll(match[1], "");
+          // We select the match index 1 to isolate the capture group.
+          const capture = match[1];
+
+          // If the regex captured something, process it according to the
+          // inputCapture type.
+          if (capture !== undefined) {
+            if (rule.inputCapture === "strip") {
+              // remove the capture from the URI
+              src = src.replaceAll(capture, "");
+            } else {
+              // set the URI text to the capture
+              src = capture;
+            }
+          }
 
           // Call the effect function to override either the attribute string
           // or the template.
