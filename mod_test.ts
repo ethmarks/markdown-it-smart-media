@@ -1,5 +1,6 @@
-import { assertEquals } from "@std/assert";
-import { guessMediaType } from "./mod.ts";
+import MarkdownIt from "markdown-it";
+import { guessMediaType, smartMedia } from "./mod.ts";
+import { assertEquals, assertStringIncludes } from "@std/assert";
 
 Deno.test(
   "guessMediaType identifies example cases from documentation",
@@ -54,5 +55,58 @@ Deno.test(
     assertEquals(guessMediaType("test.heic"), "image");
     assertEquals(guessMediaType("test.svg"), "image");
     assertEquals(guessMediaType("test.gif"), "image");
+  },
+);
+
+Deno.test(
+  "smartMedia renders basic image syntax",
+  () => {
+    const md = new MarkdownIt().use(smartMedia);
+    const result = md.render("![Description of the image](image.png)");
+
+    assertStringIncludes(result, "<img");
+    assertStringIncludes(result, 'src="image.png"');
+    assertStringIncludes(result, 'alt="Description of the image"');
+  },
+);
+
+Deno.test(
+  "smartMedia renders basic audio syntax",
+  () => {
+    const md = new MarkdownIt().use(smartMedia);
+    const result = md.render("![Description of the audio](audio.mp3)");
+
+    assertStringIncludes(result, "<audio");
+    assertStringIncludes(result, 'src="audio.mp3"');
+    assertStringIncludes(result, "controls");
+    assertStringIncludes(result, 'aria-label="Description of the audio"');
+  },
+);
+
+Deno.test(
+  "smartMedia renders basic video syntax",
+  () => {
+    const md = new MarkdownIt().use(smartMedia);
+    const result = md.render("![Description of the video](video.mp4)");
+
+    assertStringIncludes(result, "<video");
+    assertStringIncludes(result, 'src="video.mp4"');
+    assertStringIncludes(result, "controls");
+    assertStringIncludes(result, 'aria-label="Description of the video"');
+  },
+);
+
+Deno.test(
+  "smartMedia renders loop video syntax",
+  () => {
+    const md = new MarkdownIt().use(smartMedia);
+    const result = md.render(
+      "![LOOP Description of the loop video](loop.webm)",
+    );
+
+    assertStringIncludes(result, "<video");
+    assertStringIncludes(result, 'src="loop.webm"');
+    assertStringIncludes(result, "autoplay loop muted playsinline");
+    assertStringIncludes(result, 'aria-label="Description of the loop video"');
   },
 );
