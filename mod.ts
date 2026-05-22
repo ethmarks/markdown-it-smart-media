@@ -36,50 +36,113 @@ const validVideoExtensions = [
   "webm", // WebM Video/Audio container
 ];
 
+/** The three different types of media that MarkdownItSmartMedia can handle. */
+export type MediaType = "image" | "audio" | "video";
+
+export interface MarkdownItSmartMediaRule {
+  /**
+   * The property of the media token to match against the regex to determine
+   * whether or not the rule applies.
+   *
+   * - alt: Tries to match the alt text with the regex. If a match is found, the capture group is removed from the alt text before rendering.
+   * - source: Tries to match the source URI with the regex. If a match is found, the capture group is removed from the source before rendering.
+   */
+  inputType: "alt" | "source";
+
+  /** The regex to match against the input. */
+  regex: RegExp;
+
+  /** The media types that the rule applies to. */
+  mediaTypes: MediaType[];
+
+  /**
+   * The property that the rule affects.
+   *
+   * - attr: Overrides the attributes of the media HTML tag.
+   * - template: Overrides the default template used to generate the media
+   *             HTML.
+   */
+  effectType: "attr" | "template";
+
+  /**
+   * The value of the rule's effect. Behavior depends on outputType.
+   *
+   * - if outputType is "attr": The string to inject into the attributes of
+   * the media HTML tag.
+   *    - Example: "autoplay loop muted playsinline"
+   * - if outputType is "template": the template used to render the generate
+   *   the media HTML. You can use placeholders wrapped in double curly
+   *   braces for dynamic values.
+   *    - {{src}}: The processed source URI. Example: `watefall.mp4`.
+   *    - {{title}}: The processed title. Optional.
+   *                 Example: `Waterfall Timelapse`.
+   *    - {{alt}}: The processed description, typically used in the alt or
+   *               aria-label attributes. Example: `Alt text`.
+   *    - {{attrs}}: The processed attributes. Example: `controls`.
+   *    - Example:
+   *     `<video src="{{src}}" title="{{title}}" aria-label="{{alt}}" {{attrs}}></video>`
+   *    - Output of Example:
+   *     `<video src="waterfall.mp4" title="Waterfall Timelapse" aria-label="Alt text" controls></video>`
+   */
+  value: string;
+}
+
 /**
  * The options and configuration for markdown-it-smart-media.
  */
 export interface MarkdownItSmartMediaOptions {
-  /**
-   * The HTML attributes to apply to audio tags.
-   *
-   * Default is "controls"
-   */
+  imageTemplate?: string;
+  imageAttrs?: string;
+
+  audioTemplate?: string;
   audioAttrs?: string;
 
-  /**
-   * The HTML attributes to apply to video tags.
-   *
-   * Default is "controls"
-   */
+  videoTemplate?: string;
   videoAttrs?: string;
 
   /**
-   * The HTML attributes to apply to loop video tags.
-   *
-   * Default is "autoplay loop muted playsinline"
-   */
-  loopVideoAttrs?: string;
-
-  /**
-   * Whether or not to wrap the <img>, <audio>, or <video> in <figure> tags.
+   * Whether or not to wrap media tags in <figure> tags.
    *
    * Default is true
    */
   wrapInFigureTags?: boolean;
+
+  rules?: MarkdownItSmartMediaRule[];
 }
 
-/** The audio attributes to default to if no override is specified. */
+const defaultImageTemplate = '<img src="{{src}}" alt="{{alt}}">';
+const defaultImageAttrs = "";
+
+const defaultAudioTemplate =
+  '<audio src="{{src}}" title="{{title}}" aria-label="{{alt}}" {{attrs}}></audio>';
 const defaultAudioAttrs = "controls";
 
-/** The video attributes to default to if no override is specified. */
+const defaultVideoTemplate =
+  '<video src="{{src}}" title="{{title}}" aria-label="{{alt}}" {{attrs}}></video>';
 const defaultVideoAttrs = "controls";
-
-/** The loop video attributes to default to if no override is specified. */
-const defaultLoopVideoAttrs = "autoplay loop muted playsinline";
 
 /** The default value of wrapInFigureTags if no override is specified. */
 const defaultwrapInFigureTags = true;
+
+const defaultRules: MarkdownItSmartMediaRule[] = [
+  // Loop video rule
+  {
+    // Only applies to videos
+    mediaTypes: ["video"],
+
+    // Uses alt text as input
+    inputType: "alt",
+
+    // Searches for the text ":LOOP " and captures it
+    regex: /(:LOOP )/,
+
+    // Overrides the attributes
+    effectType: "attr",
+
+    // Uses GIF-like video attributes
+    value: "autoplay loop muted playsinline",
+  },
+];
 
 /**
  * Guess the media type based on the file extension of the URI.
@@ -94,7 +157,7 @@ const defaultwrapInFigureTags = true;
  * - "code.py" -> "image"
  * - "The HORSE is a noble animal." -> "image"
  */
-export function guessMediaType(uri: string): "image" | "audio" | "video" {
+export function guessMediaType(uri: string): MediaType {
   // Use a regex to isolate the file extension following a dot at
   // the end of the string.
   const extensionMatch = uri.match(/\.([^/.]+)$/);
@@ -130,6 +193,17 @@ export function guessMediaType(uri: string): "image" | "audio" | "video" {
 }
 
 /**
+ * Fill in the placeholders of a template.
+ */
+function processTemplate(template: string, data: Record<string, string>) {
+  let result = template;
+  for (const key in data) {
+    result = result.replaceAll(`{{${key}}}`, data[key]);
+  }
+  return result;
+}
+
+/**
  * Plugin for markdown-it to expand Markdown image syntax to support audio,
  * videos, and loop videos.
  */
@@ -137,10 +211,14 @@ export function smartMediaPlugin(
   md: MarkdownIt,
   options: MarkdownItSmartMediaOptions = {},
 ): MarkdownIt {
+  const imageTemplate = options.imageTemplate ?? defaultImageTemplate;
+  const imageAttrs = options.imageAttrs ?? defaultImageAttrs;
+  const audioTemplate = options.audioTemplate ?? defaultAudioTemplate;
   const audioAttrs = options.audioAttrs ?? defaultAudioAttrs;
+  const videoTemplate = options.videoTemplate ?? defaultVideoTemplate;
   const videoAttrs = options.videoAttrs ?? defaultVideoAttrs;
-  const loopVideoAttrs = options.loopVideoAttrs ?? defaultLoopVideoAttrs;
   const wrapInFigureTags = options.wrapInFigureTags ?? defaultwrapInFigureTags;
+  const rules = options.rules ?? defaultRules;
 
   // Override the image rule
   md.renderer.rules.image = (
@@ -154,7 +232,7 @@ export function smartMediaPlugin(
 
     // Extract src
     const srcIndex = token.attrIndex("src");
-    const src = srcIndex >= 0 ? token.attrs![srcIndex][1] : "";
+    let src = srcIndex >= 0 ? token.attrs![srcIndex][1] : "";
 
     // Extract title (e.g., ![alt](url "title"))
     const titleIndex = token.attrIndex("title");
@@ -163,47 +241,92 @@ export function smartMediaPlugin(
     // The alt text is stored in token.content
     let alt = token.content || "";
 
-    // Escape HTML to prevent XSS
-    const escapedSrc = md.utils.escapeHtml(src);
-    const titleAttr = title ? ` title="${md.utils.escapeHtml(title)}"` : "";
-
+    // Guess the mediaType from the URI
     const mediaType = guessMediaType(src);
 
-    const innerHTML = (() => {
-      // Render Audio
-      if (mediaType === "audio") {
-        const ariaLabel = alt
-          ? ` aria-label="${md.utils.escapeHtml(alt)}"`
-          : "";
-        return `<audio src="${escapedSrc}"${titleAttr} ${audioAttrs}${ariaLabel}></audio>`;
-      }
+    // Set the initial template (before rules are applied) to the template
+    // corresponding to the mediaType.
+    let template: string = mediaType === "video"
+      ? videoTemplate
+      : mediaType === "audio"
+      ? audioTemplate
+      : imageTemplate;
 
-      // Render Video
-      if (mediaType === "video") {
-        let isLoop = false;
+    // Set the initial attribute string (before rules are applied) to the
+    // attribute string corresponding to the mediaType.
+    let attrs: string = mediaType === "video"
+      ? videoAttrs
+      : mediaType === "audio"
+      ? audioAttrs
+      : imageAttrs;
 
-        // Check for the loop keyword and strip it from the alt text
-        if (alt.startsWith(":LOOP ")) {
-          isLoop = true;
-          alt = alt.substring(6); // Remove ":LOOP "
+    // Apply all rules.
+    rules
+      // Filter to rules that apply to the token's mediaType.
+      .filter((r) => r.mediaTypes.includes(mediaType))
+      // Iterate over each rule.
+      .forEach((rule) => {
+        // Define the effect function to be called if the rule applies.
+        const effectFunc = () => {
+          if (rule.effectType === "attr") {
+            // Override the attribute string.
+            attrs = rule.value;
+          } else {
+            // Override the template.
+            template = rule.value;
+          }
+        };
+
+        if (rule.inputType === "alt") {
+          // The rule uses the alt text as input.
+
+          // Attempt to match the alt text with the regex.
+          const match = alt.match(rule.regex);
+
+          // If a match couldn't be found, the rule doesn't apply and we should
+          // return early.
+          if (match === null) return;
+
+          // Remove the regex's capture group from the alt text.
+          alt = alt.replaceAll(match[1], "");
+
+          // Call the effect function to override either the attribute string
+          // or the template.
+          effectFunc();
+        } else {
+          // The rule uses the source URI as input.
+
+          // Attempt to match the URI with the regex.
+          const match = src.match(rule.regex);
+
+          // If a match couldn't be found, the rule doesn't apply and we should
+          // return early.
+          if (match === null) return;
+
+          // Remove the regex's capture group from the URI.
+          src = src.replaceAll(match[1], "");
+
+          // Call the effect function to override either the attribute string
+          // or the template.
+          effectFunc();
         }
+      });
 
-        const ariaLabel = alt
-          ? ` aria-label="${md.utils.escapeHtml(alt)}"`
-          : "";
-        const attrs = isLoop ? loopVideoAttrs : videoAttrs;
+    // Escape HTML to prevent XSS
+    const escapedSrc = md.utils.escapeHtml(src);
+    const escapedTitle = md.utils.escapeHtml(title);
+    const escapedAlt = md.utils.escapeHtml(alt);
 
-        return `<video src="${escapedSrc}"${titleAttr} ${attrs}${ariaLabel}></video>`;
-      }
-
-      // Render Image
-      const altAttr = alt ? ` alt="${md.utils.escapeHtml(alt)}"` : "";
-      return `<img src="${escapedSrc}"${altAttr}>`;
-    })();
+    const innerHTML = processTemplate(template, {
+      src: escapedSrc,
+      title: escapedTitle,
+      alt: escapedAlt,
+      attrs,
+    });
 
     if (wrapInFigureTags) {
       const figCaptionHTML = title
-        ? `<figcaption>${md.utils.escapeHtml(title)}</figcaption>`
+        ? `<figcaption>${escapedTitle}</figcaption>`
         : "";
       return `<figure>${innerHTML}${figCaptionHTML}</figure>`;
     }
