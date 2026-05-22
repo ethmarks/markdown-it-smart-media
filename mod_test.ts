@@ -208,3 +208,50 @@ Deno.test(
     assertStringIncludes(result, 'aria-label="Alt text"');
   },
 );
+
+Deno.test(
+  "markdown-it-smart-media handles youtube embed rule",
+  () => {
+    const md = new MarkdownIt().use(smartMediaPlugin);
+    const result = md.render(
+      "![Alt text](https://www.youtube.com/watch?v=dQw4w9WgXcQ)",
+    );
+
+    assertStringIncludes(result, "<iframe");
+    assertStringIncludes(
+      result,
+      'src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"',
+    );
+    assertStringIncludes(result, 'allow="autoplay; encrypted-media;"');
+    assertStringIncludes(result, 'title="Alt text"');
+  },
+);
+
+Deno.test(
+  "markdown-it-smart-media handles empty rules",
+  () => {
+    const md = new MarkdownIt().use(smartMediaPlugin, {
+      rules: [],
+    });
+
+    // Check if loop video rule is disabled.
+    const result1 = md.render(
+      "![:LOOP Alt text](test.mp4)",
+    );
+    assertStringIncludes(result1, "<video");
+    assertStringIncludes(result1, 'src="test.mp4"');
+    assertStringIncludes(result1, "controls");
+    assertStringIncludes(result1, 'aria-label=":LOOP Alt text"');
+
+    // Check if youtube embed rule is disabled.
+    const result2 = md.render(
+      "![Alt text](https://www.youtube.com/watch?v=dQw4w9WgXcQ)",
+    );
+    assertStringIncludes(result2, "<img");
+    assertStringIncludes(
+      result2,
+      'src="https://www.youtube.com/watch?v=dQw4w9WgXcQ"',
+    );
+    assertStringIncludes(result2, 'alt="Alt text"');
+  },
+);
