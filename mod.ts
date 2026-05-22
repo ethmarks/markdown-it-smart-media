@@ -76,12 +76,12 @@ export interface MarkdownItSmartMediaRule {
   effectType: "attr" | "template";
 
   /**
-   * The value of the rule's effect. Behavior depends on outputType.
+   * The value of the rule's effect. Behavior depends on effectType.
    *
-   * - if outputType is "attr": The string to inject into the attributes of
+   * - if effectType is "attr": The string to inject into the attributes of
    * the media HTML tag.
    *    - Example: "autoplay loop muted playsinline"
-   * - if outputType is "template": the template used to render the generate
+   * - if effectType is "template": the template used to render the generate
    *   the media HTML. You can use placeholders wrapped in double curly
    *   braces for dynamic values.
    *    - {{src}}: The processed source URI. Example: `watefall.mp4`.
@@ -266,13 +266,16 @@ export function smartMediaPlugin(
       ? audioTemplate
       : imageTemplate;
 
-    // Set the initial attribute string (before rules are applied) to the
-    // attribute string corresponding to the mediaType.
-    let attrs: string = mediaType === "video"
+    // Set the initial attribute string to the attribute string corresponding
+    // to the mediaType.
+    const initialAttrs: string = mediaType === "video"
       ? videoAttrs
       : mediaType === "audio"
       ? audioAttrs
       : imageAttrs;
+
+    // Initialize attrs to the initial attribute string.
+    let attrs = initialAttrs;
 
     // Apply all rules.
     rules
@@ -283,8 +286,15 @@ export function smartMediaPlugin(
         // Define the effect function to be called if the rule applies.
         const effectFunc = () => {
           if (rule.effectType === "attr") {
-            // Override the attribute string.
-            attrs = rule.value;
+            if (attrs === initialAttrs) {
+              // If this is the first attribute-modifying rule to be applied,
+              // completely overwrite the attribute string.
+              attrs = rule.value;
+            } else {
+              // If attribute-modifying rules have already been applied,
+              // append the new attributes to the attribute string.
+              attrs = `${attrs} ${rule.value}`;
+            }
           } else {
             // Override the template.
             template = rule.value;
