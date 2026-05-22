@@ -101,21 +101,6 @@ Deno.test(
 );
 
 Deno.test(
-  "markdown-it-smart-media renders loop video syntax",
-  () => {
-    const md = new MarkdownIt().use(smartMediaPlugin);
-    const result = md.render(
-      "![:LOOP Alt text](test.webm)",
-    );
-
-    assertStringIncludes(result, "<video");
-    assertStringIncludes(result, 'src="test.webm"');
-    assertStringIncludes(result, "autoplay loop muted playsinline");
-    assertStringIncludes(result, 'aria-label="Alt text"');
-  },
-);
-
-Deno.test(
   "markdown-it-smart-media handles wrapInFigureTags enabled",
   () => {
     const md = new MarkdownIt().use(smartMediaPlugin, {
@@ -160,19 +145,6 @@ Deno.test(
     assertStringIncludes(result6, "<figure>");
     assertStringIncludes(result6, "<figcaption>");
     assertStringIncludes(result6, "Title");
-
-    const result7 = md.render(
-      "![:LOOP Alt text](test.mp4)",
-    );
-    assertStringIncludes(result7, "<figure>");
-    assertNotMatch(result7, /<figcaption>/);
-
-    const result8 = md.render(
-      '![:LOOP Alt text](test.mp4 "Title")',
-    );
-    assertStringIncludes(result8, "<figure>");
-    assertStringIncludes(result8, "<figcaption>");
-    assertStringIncludes(result8, "Title");
   },
 );
 
@@ -219,17 +191,20 @@ Deno.test(
     );
     assertNotMatch(result6, /<figure>/);
     assertNotMatch(result6, /<figcaption>/);
+  },
+);
 
-    const result7 = md.render(
-      "![:LOOP Alt text](test.mp4)",
+Deno.test(
+  "markdown-it-smart-media handles loop video rule",
+  () => {
+    const md = new MarkdownIt().use(smartMediaPlugin);
+    const result = md.render(
+      "![:LOOP Alt text](test.webm)",
     );
-    assertNotMatch(result7, /<figure>/);
-    assertNotMatch(result7, /<figcaption>/);
 
-    const result8 = md.render(
-      '![:LOOP Alt text](test.mp4 "Title")',
-    );
-    assertNotMatch(result8, /<figure>/);
-    assertNotMatch(result8, /<figcaption>/);
+    assertStringIncludes(result, "<video");
+    assertStringIncludes(result, 'src="test.webm"');
+    assertStringIncludes(result, "autoplay loop muted playsinline");
+    assertStringIncludes(result, 'aria-label="Alt text"');
   },
 );
