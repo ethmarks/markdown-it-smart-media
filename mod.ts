@@ -160,7 +160,7 @@ export const defaultRules: MarkdownItSmartMediaRule[] = [
 ];
 
 /**
- * Guess the media type based on the file extension of the URI.
+ * Infer the media type based on the file extension of the URI.
  *
  * Defaults to "image" if URI isn't _clearly_ an audio or video file.
  *
@@ -172,7 +172,7 @@ export const defaultRules: MarkdownItSmartMediaRule[] = [
  * - "code.py" -> "image"
  * - "The HORSE is a noble animal." -> "image"
  */
-export function guessMediaType(uri: string): MediaType {
+export function inferMediaType(uri: string): MediaType {
   // Use a regex to isolate the file extension following a dot at
   // the end of the string.
   const extensionMatch = uri.match(/\.([^/.]+)$/);
@@ -256,8 +256,8 @@ export function smartMediaPlugin(
     // The alt text is stored in token.content
     let alt = token.content || "";
 
-    // Guess the mediaType from the URI
-    const mediaType = guessMediaType(src);
+    // Infer the mediaType from the URI
+    const mediaType = inferMediaType(src);
 
     // Set the initial template (before rules are applied) to the template
     // corresponding to the mediaType.
