@@ -1,5 +1,5 @@
 import MarkdownIt from "markdown-it";
-import { guessMediaType, smartMedia } from "./mod.ts";
+import { guessMediaType, smartMediaPlugin } from "./mod.ts";
 import {
   assertEquals,
   assertNotMatch,
@@ -65,7 +65,7 @@ Deno.test(
 Deno.test(
   "markdown-it-smart-media renders basic image syntax",
   () => {
-    const md = new MarkdownIt().use(smartMedia);
+    const md = new MarkdownIt().use(smartMediaPlugin);
     const result = md.render("![Alt text](test.png)");
 
     assertStringIncludes(result, "<img");
@@ -77,7 +77,7 @@ Deno.test(
 Deno.test(
   "markdown-it-smart-media renders basic audio syntax",
   () => {
-    const md = new MarkdownIt().use(smartMedia);
+    const md = new MarkdownIt().use(smartMediaPlugin);
     const result = md.render("![Alt text](test.mp3)");
 
     assertStringIncludes(result, "<audio");
@@ -90,7 +90,7 @@ Deno.test(
 Deno.test(
   "markdown-it-smart-media renders basic video syntax",
   () => {
-    const md = new MarkdownIt().use(smartMedia);
+    const md = new MarkdownIt().use(smartMediaPlugin);
     const result = md.render("![Alt text](test.mp4)");
 
     assertStringIncludes(result, "<video");
@@ -103,7 +103,7 @@ Deno.test(
 Deno.test(
   "markdown-it-smart-media renders loop video syntax",
   () => {
-    const md = new MarkdownIt().use(smartMedia);
+    const md = new MarkdownIt().use(smartMediaPlugin);
     const result = md.render(
       "![LOOP Alt text](test.webm)",
     );
@@ -118,7 +118,9 @@ Deno.test(
 Deno.test(
   "markdown-it-smart-media handles wrapInFigureTags enabled",
   () => {
-    const md = new MarkdownIt().use(smartMedia, { wrapInFigureTags: true });
+    const md = new MarkdownIt().use(smartMediaPlugin, {
+      wrapInFigureTags: true,
+    });
 
     const result1 = md.render(
       "![Alt text](test.png)",
@@ -177,7 +179,9 @@ Deno.test(
 Deno.test(
   "markdown-it-smart-media handles wrapInFigureTags disabled",
   () => {
-    const md = new MarkdownIt().use(smartMedia, { wrapInFigureTags: false });
+    const md = new MarkdownIt().use(smartMediaPlugin, {
+      wrapInFigureTags: false,
+    });
 
     const result1 = md.render(
       "![Alt text](test.png)",

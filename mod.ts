@@ -129,7 +129,11 @@ export function guessMediaType(uri: string): "image" | "audio" | "video" {
   return "image";
 }
 
-export function smartMedia(
+/**
+ * Plugin for markdown-it to expand Markdown image syntax to support audio,
+ * videos, and loop videos.
+ */
+export function smartMediaPlugin(
   md: MarkdownIt,
   options: MarkdownItSmartMediaOptions = {},
 ): MarkdownIt {
