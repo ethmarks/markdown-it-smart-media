@@ -34,7 +34,6 @@ const validVideoExtensions = [
   "mpeg", // MPEG-1 or MPEG-2 video
   "mpg", // MPEG video
   "ogv", // Ogg Video
-  "ts", // MPEG Transport Stream
   "webm", // WebM Video/Audio container
 ];
 
@@ -86,7 +85,7 @@ const defaultLoopVideoAttrs = "autoplay loop muted playsinline";
  * - "code.py" -> "image"
  * - "The HORSE is a noble animal." -> "image"
  */
-function guessMediaType(uri: string): "image" | "audio" | "video" {
+export function guessMediaType(uri: string): "image" | "audio" | "video" {
   // Use a regex to isolate the file extension following a dot at
   // the end of the string.
   const extensionMatch = uri.match(/\.([^/.]+)$/);
