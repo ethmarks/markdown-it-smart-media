@@ -1,7 +1,6 @@
 import type MarkdownIt from "markdown-it";
 import type { Options as MarkdownItOptions } from "markdown-it";
 import type Renderer from "markdown-it/lib/renderer.mjs";
-import type { RenderRule } from "markdown-it/lib/renderer.mjs";
 import type Token from "markdown-it/lib/token.mjs";
 
 /**
@@ -61,6 +60,13 @@ export interface MarkdownItSmartMediaOptions {
    * Default is "autoplay loop muted playsinline"
    */
   loopVideoAttrs?: string;
+
+  /**
+   * Whether or not to wrap the <img>, <audio>, or <video> in <figure> tags.
+   *
+   * Default is true
+   */
+  wrapInFigureTags?: boolean;
 }
 
 /** The audio attributes to default to if no override is specified. */
@@ -71,6 +77,9 @@ const defaultVideoAttrs = "controls";
 
 /** The loop video attributes to default to if no override is specified. */
 const defaultLoopVideoAttrs = "autoplay loop muted playsinline";
+
+/** The default value of wrapInFigureTags if no override is specified. */
+const defaultwrapInFigureTags = true;
 
 /**
  * Guess the media type based on the file extension of the URI.
@@ -127,26 +136,15 @@ export function smartMedia(
   const audioAttrs = options.audioAttrs ?? defaultAudioAttrs;
   const videoAttrs = options.videoAttrs ?? defaultVideoAttrs;
   const loopVideoAttrs = options.loopVideoAttrs ?? defaultLoopVideoAttrs;
-
-  // Store the original image renderer to fall back on for standard images
-  const defaultRender: RenderRule = md.renderer.rules.image ||
-    function (
-      tokens: Token[],
-      idx: number,
-      options: MarkdownItOptions,
-      _env: any,
-      self: Renderer,
-    ) {
-      return self.renderToken(tokens, idx, options);
-    };
+  const wrapInFigureTags = options.wrapInFigureTags ?? defaultwrapInFigureTags;
 
   // Override the image rule
   md.renderer.rules.image = (
     tokens: Token[],
     idx: number,
-    renderOptions: MarkdownItOptions,
-    env: any,
-    self: Renderer,
+    _renderOptions: MarkdownItOptions,
+    _env: any,
+    _self: Renderer,
   ) => {
     const token = tokens[idx];
 
@@ -161,41 +159,51 @@ export function smartMedia(
     // The alt text is stored in token.content
     let alt = token.content || "";
 
-    const mediaType = guessMediaType(src);
-
-    // If it's just an image, bail out and use the default markdown-it renderer
-    if (mediaType === "image") {
-      return defaultRender(tokens, idx, renderOptions, env, self);
-    }
-
     // Escape HTML to prevent XSS
     const escapedSrc = md.utils.escapeHtml(src);
     const titleAttr = title ? ` title="${md.utils.escapeHtml(title)}"` : "";
 
-    // Render Audio
-    if (mediaType === "audio") {
-      const ariaLabel = alt ? ` aria-label="${md.utils.escapeHtml(alt)}"` : "";
-      return `<audio src="${escapedSrc}"${titleAttr} ${audioAttrs}${ariaLabel}></audio>`;
-    }
+    const mediaType = guessMediaType(src);
 
-    // Render Video
-    if (mediaType === "video") {
-      let isLoop = false;
-
-      // Check for the loop keyword and strip it from the alt text
-      if (alt.startsWith("LOOP ")) {
-        isLoop = true;
-        alt = alt.substring(5); // Remove "LOOP "
+    const innerHTML = (() => {
+      // Render Audio
+      if (mediaType === "audio") {
+        const ariaLabel = alt
+          ? ` aria-label="${md.utils.escapeHtml(alt)}"`
+          : "";
+        return `<audio src="${escapedSrc}"${titleAttr} ${audioAttrs}${ariaLabel}></audio>`;
       }
 
-      const ariaLabel = alt ? ` aria-label="${md.utils.escapeHtml(alt)}"` : "";
-      const attrs = isLoop ? loopVideoAttrs : videoAttrs;
+      // Render Video
+      if (mediaType === "video") {
+        let isLoop = false;
 
-      return `<video src="${escapedSrc}"${titleAttr} ${attrs}${ariaLabel}></video>`;
+        // Check for the loop keyword and strip it from the alt text
+        if (alt.startsWith("LOOP ")) {
+          isLoop = true;
+          alt = alt.substring(5); // Remove "LOOP "
+        }
+
+        const ariaLabel = alt
+          ? ` aria-label="${md.utils.escapeHtml(alt)}"`
+          : "";
+        const attrs = isLoop ? loopVideoAttrs : videoAttrs;
+
+        return `<video src="${escapedSrc}"${titleAttr} ${attrs}${ariaLabel}></video>`;
+      }
+
+      // Render Image
+      const altAttr = alt ? ` alt="${md.utils.escapeHtml(alt)}"` : "";
+      return `<img src="${escapedSrc}"${altAttr}>`;
+    })();
+
+    if (wrapInFigureTags) {
+      const figCaptionHTML = title
+        ? `<figcaption>${md.utils.escapeHtml(title)}</figcaption>`
+        : "";
+      return `<figure>${innerHTML}${figCaptionHTML}</figure>`;
     }
-
-    // Fallback to using default markdown-it renderer
-    return defaultRender(tokens, idx, renderOptions, env, self);
+    return innerHTML;
   };
 
   return md;
