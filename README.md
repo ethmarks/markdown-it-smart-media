@@ -45,8 +45,8 @@ Output (formatted for ease of reading):
 
 ### Media Types
 
-`markdown-it-smart-media` identifies the media type of the source based on the
-file extension.
+`markdown-it-smart-media` infers the media type of the source based on the file
+extension.
 
 If the source ends in one of these following extensions, it will be treated as a
 video: `.mp4`, `.webm`, `.mov`, `.av1`, `.m4v`, `.mkv`, `.mpeg`, `.mpg`, `.ogv`,
@@ -59,12 +59,24 @@ If the source doesn't have a file extension or if the extension doesn't match
 any recognized audio or video extensions, `markdown-it-smart-media` defaults to
 treating it like an image.
 
-| Markdown                 | HTML                                                                              |
-| ------------------------ | --------------------------------------------------------------------------------- |
-| `![Alt](img.png)`        | `<img src="img.png" alt="Alt">`                                                   |
-| `![Alt](audio.mp3)`      | `<audio src="audio.mp3" controls aria-label="Alt"></audio>`                       |
-| `![Alt](video.mp4)`      | `<video src="video.mp4" controls aria-label="Alt"></video>`                       |
-| `![:LOOP Alt](loop.mp4)` | `<video src="loop.mp4" autoplay loop muted playsinline aria-label="Alt"></video>` |
+Examples of media type inference:
+
+| Source                       | Media Type |
+| ---------------------------- | ---------- |
+| waterfall.png                | image      |
+| birdsong.mp3                 | audio      |
+| timelapse.mp4                | video      |
+| code.py                      | image      |
+| The HORSE is a noble animal. | image      |
+
+Examples of output for each media type:
+
+| Markdown                  | HTML                                                                               |
+| ------------------------- | ---------------------------------------------------------------------------------- |
+| `![Alt](img.png)`         | `<img src="img.png" alt="Alt">`                                                    |
+| `![Alt](audio.mp3)`       | `<audio src="audio.mp3" controls aria-label="Alt"></audio>`                        |
+| `![Alt](video.mp4)`       | `<video src="video.mp4" controls aria-label="Alt"></video>`                        |
+| `![:LOOP Alt](video.mp4)` | `<video src="video.mp4" autoplay loop muted playsinline aria-label="Alt"></video>` |
 
 ### Figure Tags
 
