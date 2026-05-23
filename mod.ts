@@ -39,6 +39,10 @@ const validVideoExtensions = [
 /** The three different types of media that MarkdownItSmartMedia can handle. */
 export type MediaType = "image" | "audio" | "video";
 
+/**
+ * Defines rules that can inject attributes or override the HTML template if
+ * certain conditions are met.
+ */
 export interface MarkdownItSmartMediaRule {
   /** The media types that the rule applies to. */
   mediaTypes: MediaType[];
@@ -100,13 +104,46 @@ export interface MarkdownItSmartMediaRule {
  * The options and configuration for markdown-it-smart-media.
  */
 export interface MarkdownItSmartMediaOptions {
+  /**
+   * The template to use for image media.
+   *
+   * Default is `<img src="{{src}}" alt="{{alt}}" {{attrs}}>`.
+   */
   imageTemplate?: string;
+
+  /**
+   * The attributes to apply to image media.
+   *
+   * Default is an empty string.
+   */
   imageAttrs?: string;
 
+  /**
+   * The template to use for audio media.
+   *
+   * Default is `<audio src="{{src}}" title="{{title}}" aria-label="{{alt}}" {{attrs}}></audio>`
+   */
   audioTemplate?: string;
+
+  /**
+   * The attributes to apply to audio media.
+   *
+   * Default is an `controls`.
+   */
   audioAttrs?: string;
 
+  /**
+   * The template to use for video media.
+   *
+   * Default is `<video src="{{src}}" title="{{title}}" aria-label="{{alt}}" {{attrs}}></video>`
+   */
   videoTemplate?: string;
+
+  /**
+   * The attributes to apply to video media.
+   *
+   * Default is `controls`.
+   */
   videoAttrs?: string;
 
   /**
@@ -116,6 +153,9 @@ export interface MarkdownItSmartMediaOptions {
    */
   wrapInFigureTags?: boolean;
 
+  /**
+   * The rules to apply.
+   */
   rules?: MarkdownItSmartMediaRule[];
 }
 
@@ -177,6 +217,14 @@ const youtubeEmbedRule: MarkdownItSmartMediaRule = {
     '<iframe src="https://www.youtube-nocookie.com/embed/{{src}}" title="{{alt}}" class="youtube-embed" style="aspect-ratio: 16/9; width: 100%; border: 0;" allow="autoplay; encrypted-media;" allowfullscreen></iframe>',
 };
 
+/**
+ * The default rules.
+ *
+ * - loopVideoRule adds support for the ":LOOP" syntax for videos to inject
+ *   attributes to make <video> tags behave like GIFs.
+ * - youtubeEmbedRule identifies YouTube URLs and overrides the template to
+ *   an embedded YouTube iframe.
+ */
 export const defaultRules: MarkdownItSmartMediaRule[] = [
   loopVideoRule,
   youtubeEmbedRule,
