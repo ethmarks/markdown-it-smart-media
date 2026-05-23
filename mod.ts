@@ -50,16 +50,16 @@ export interface MarkdownItSmartMediaRule {
    * The property of the media token to match against the regex to determine
    * whether or not the rule applies.
    *
-   * - alt: Tries to match the alt text with the regex. If a match is found, the capture group is removed from the alt text before rendering.
-   * - source: Tries to match the source URI with the regex. If a match is found, the capture group is removed from the source before rendering.
+   * - alt: Tries to match the alt text with the regex.
+   * - src: Tries to match the source URI with the regex.
    */
-  inputType: "alt" | "source";
+  inputType: "alt" | "src";
 
   /**
    * How to process the part of the input matched by the capture group of the
    * regex.
    *
-   * - strip: Remove the capture group. Example: "apple banana cherry" + `/apple (banana)/` = "apple cherry".
+   * - strip: Remove the capture group. Example: "apple banana cherry" + `/apple (banana )/` = "apple cherry".
    * - isolate: Remove everything except for the capture group. Example: "apple banana cherry" + `/apple (banana)/` = "banana".
    *
    * To preserve the input without stripping or isolating, use a regex without a capture group.
@@ -69,21 +69,19 @@ export interface MarkdownItSmartMediaRule {
   /**
    * The property that the rule affects.
    *
-   * - attr: Overrides the attributes of the media HTML tag.
-   * - template: Overrides the default template used to generate the media
-   *             HTML.
+   * - attrs: Overrides the attributes of the media HTML tag.
+   * - template: Overrides the default template used to generate the media HTML.
    */
-  effectType: "attr" | "template";
+  effectType: "attrs" | "template";
 
   /**
    * The value of the rule's effect. Behavior depends on effectType.
    *
-   * - if effectType is "attr": The string to inject into the attributes of
+   * - if effectType is "attrs": The string to inject into the attributes of
    * the media HTML tag.
    *    - Example: "autoplay loop muted playsinline"
-   * - if effectType is "template": the template used to render the generate
-   *   the media HTML. You can use placeholders wrapped in double curly
-   *   braces for dynamic values.
+   * - if effectType is "template": the template used to render the media HTML.
+   * You can use placeholders wrapped in double curly braces for dynamic values.
    *    - {{src}}: The processed source URI. Example: `watefall.mp4`.
    *    - {{title}}: The processed title. Optional.
    *                 Example: `Waterfall Timelapse`.
@@ -121,7 +119,7 @@ export interface MarkdownItSmartMediaOptions {
   rules?: MarkdownItSmartMediaRule[];
 }
 
-const defaultImageTemplate = '<img src="{{src}}" alt="{{alt}}">';
+const defaultImageTemplate = '<img src="{{src}}" alt="{{alt}}" {{attrs}}>';
 const defaultImageAttrs = "";
 
 const defaultAudioTemplate =
@@ -149,7 +147,7 @@ const loopVideoRule: MarkdownItSmartMediaRule = {
   inputCapture: "strip",
 
   // Overrides the attributes
-  effectType: "attr",
+  effectType: "attrs",
 
   // Uses GIF-like video attributes
   value: "autoplay loop muted playsinline",
@@ -164,7 +162,7 @@ const youtubeEmbedRule: MarkdownItSmartMediaRule = {
     /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/,
 
   // Uses the source as input.
-  inputType: "source",
+  inputType: "src",
 
   // Isolates the video ID from the full URL.
   inputCapture: "isolate",
@@ -173,7 +171,8 @@ const youtubeEmbedRule: MarkdownItSmartMediaRule = {
   effectType: "template",
 
   // Renders a youtube-nocookie iframe.
-  // We use title="{{alt}}" because iframes don't support alt text, and the title attribute is the next best place.
+  // We use title="{{alt}}" because iframes don't support alt text, and the
+  // title attribute is the next best place.
   value:
     '<iframe src="https://www.youtube-nocookie.com/embed/{{src}}" title="{{alt}}" class="youtube-embed" style="aspect-ratio: 16/9; width: 100%; border: 0;" allow="autoplay; encrypted-media;" allowfullscreen></iframe>',
 };
@@ -310,7 +309,7 @@ export function smartMediaPlugin(
       .forEach((rule) => {
         // Define the effect function to be called if the rule applies.
         const effectFunc = () => {
-          if (rule.effectType === "attr") {
+          if (rule.effectType === "attrs") {
             if (attrs === initialAttrs) {
               // If this is the first attribute-modifying rule to be applied,
               // completely overwrite the attribute string.
