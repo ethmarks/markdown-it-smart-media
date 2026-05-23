@@ -9,6 +9,7 @@ A Deno-native `markdown-it` plugin that extends Markdown image syntax.
 - Supports GIF-like loop videos via the ":LOOP" keyword.
 - Supports YouTube embed iframes.
 - Wraps media in `<figure>` tags and renders titles to `<figcaption>` tags.
+- Sanitizes inputs to prevent XSS.
 - Fully configurable with custom rule engine.
 
 ## Basic Usage
@@ -241,7 +242,7 @@ const youtubeEmbedRule: MarkdownItSmartMediaRule = {
     /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/,
 
   // Uses the source as input.
-  inputType: "source",
+  inputType: "src",
 
   // Isolates the video ID from the full URL.
   inputCapture: "isolate",
@@ -343,7 +344,7 @@ available:
   `{image/audio/video}Attrs` (depending on the inferred media type), but can be
   overridden by rules.
 
-For example, if we assume that no rules are active and `imageAttr` is set to
+For example, if we assume that no rules are active and `imageAttrs` is set to
 `controls`, the following Markdown...
 
 ```md
