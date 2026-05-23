@@ -196,9 +196,10 @@ export const defaultRules: MarkdownItSmartMediaRule[] = [
  * - "The HORSE is a noble animal." -> "image"
  */
 export function inferMediaType(uri: string): MediaType {
-  // Use a regex to isolate the file extension following a dot at
-  // the end of the string.
-  const extensionMatch = uri.match(/\.([^/.]+)$/);
+  // Use a regex to isolate the file extension.
+  // First, truncate the string to before any query parameters or hashes.
+  // Second, match the string at the end of the URI following a dot.
+  const extensionMatch = uri.split(/[?#]/)[0].match(/\.([^/.]+)$/);
 
   // If the match is null, the regex couldn't find any matches.
   // This indicates that the string didn't end in a file extension. We just fall

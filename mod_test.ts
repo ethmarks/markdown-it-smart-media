@@ -63,6 +63,15 @@ Deno.test(
 );
 
 Deno.test(
+  "inferMediaType handles query parameters and hashes",
+  () => {
+    assertEquals(inferMediaType("test.mp4#hashtext"), "video");
+    assertEquals(inferMediaType("test.mp4?queryparam"), "video");
+    assertEquals(inferMediaType("test.mp4#hashtext?queryparam"), "video");
+  },
+);
+
+Deno.test(
   "markdown-it-smart-media renders basic image syntax",
   () => {
     const md = new MarkdownIt().use(smartMediaPlugin);
