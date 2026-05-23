@@ -5,7 +5,7 @@ import type Token from "markdown-it/lib/token.mjs";
 
 /**
  * Plugin for markdown-it to expand image syntax to support
- * audio, videos, and loop videos
+ * audio and videos.
  */
 
 // We can only detect video/audio files from the extension in the URL.
@@ -242,8 +242,8 @@ function processTemplate(template: string, data: Record<string, string>) {
 }
 
 /**
- * Plugin for markdown-it to expand Markdown image syntax to support audio,
- * videos, and loop videos.
+ * Plugin for markdown-it to expand Markdown image syntax to support audio and
+ * videos.
  */
 export function smartMediaPlugin(
   md: MarkdownIt,

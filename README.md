@@ -9,7 +9,7 @@ A Deno-native `markdown-it` plugin that extends Markdown image syntax.
 - Supports GIF-like loop videos via the ":LOOP" keyword.
 - Supports YouTube embed iframes.
 - Wraps media in `<figure>` tags and renders titles to `<figcaption>` tags.
-- Fully configurable.
+- Fully configurable with custom rule engine.
 
 ## Basic Usage
 
