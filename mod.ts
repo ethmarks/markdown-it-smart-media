@@ -291,6 +291,30 @@ function processTemplate(template: string, data: Record<string, string>) {
 }
 
 /**
+ * Convert tokens to plaintext.
+ */
+function renderPlaintext(md: MarkdownIt, markdownText: string): string {
+  if (!markdownText) return "";
+  // Parse inline text specifically
+  const tokens = md.parseInline(markdownText, {});
+  let plainText = "";
+
+  const extractText = (tokenList: Token[]) => {
+    for (const token of tokenList) {
+      if (token.type === "text") {
+        plainText += token.content;
+      }
+      if (token.children) {
+        extractText(token.children);
+      }
+    }
+  };
+
+  extractText(tokens);
+  return plainText.trim();
+}
+
+/**
  * Plugin for markdown-it to expand Markdown image syntax to support audio and
  * videos.
  */
@@ -435,8 +459,11 @@ export function smartMediaPlugin(
 
     // Escape HTML to prevent XSS
     const escapedSrc = md.utils.escapeHtml(src);
-    const escapedTitle = md.utils.escapeHtml(title);
     const escapedAlt = md.utils.escapeHtml(alt);
+
+    // Strip Markdown syntax, especially links
+    const plainTitle = renderPlaintext(md, title);
+    const escapedTitle = md.utils.escapeHtml(plainTitle);
 
     const innerHTML = processTemplate(template, {
       src: escapedSrc,
@@ -446,8 +473,11 @@ export function smartMediaPlugin(
     });
 
     if (wrapInFigureTags) {
-      const figCaptionHTML = title
-        ? `<figcaption>${escapedTitle}</figcaption>`
+      // Render title to HTML so that links work
+      const htmlTitle = title ? md.renderInline(title) : "";
+
+      const figCaptionHTML = htmlTitle
+        ? `<figcaption>${htmlTitle}</figcaption>`
         : "";
       return `<figure>${innerHTML}${figCaptionHTML}</figure>`;
     }

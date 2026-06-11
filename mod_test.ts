@@ -264,3 +264,19 @@ Deno.test(
     assertStringIncludes(result2, 'alt="Alt text"');
   },
 );
+
+Deno.test(
+  "markdown-it-smart-media handles links in title",
+  () => {
+    const md = new MarkdownIt().use(smartMediaPlugin);
+    const result = md.render(
+      '![Alt text](test.webm "Sourced from [here](https://example.com)")',
+    );
+
+    assertStringIncludes(result, 'title="Sourced from here"');
+    assertStringIncludes(result, "<figcaption>Sourced from");
+    assertStringIncludes(result, "<a");
+    assertStringIncludes(result, "https://example.com");
+    assertStringIncludes(result, "</figcaption>");
+  },
+);
