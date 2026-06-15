@@ -214,7 +214,7 @@ const youtubeEmbedRule: MarkdownItSmartMediaRule = {
   // We use title="{{alt}}" because iframes don't support alt text, and the
   // title attribute is the next best place.
   value:
-    '<iframe src="https://www.youtube-nocookie.com/embed/{{src}}" title="{{alt}}" class="youtube-embed" style="aspect-ratio: 16/9; width: 100%; border: 0;" allow="autoplay; encrypted-media;" allowfullscreen></iframe>',
+    '<iframe src="https://www.youtube-nocookie.com/embed/{{src}}" loading="lazy" title="{{alt}}" class="youtube-embed" style="aspect-ratio: 16/9; width: 100%; border: 0;" allow="autoplay; encrypted-media;" allowfullscreen></iframe>',
 };
 
 /**
