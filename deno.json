@@ -1,6 +1,6 @@
 {
   "name": "@ethmarks/markdown-it-smart-media",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "exports": "./mod.ts",
   "license": "CC0-1.0",
   "imports": {
